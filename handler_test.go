@@ -22,7 +22,7 @@ import (
 const encryptionKey = "some-encryption-keys-goes-here"
 
 var db *sql.DB
-var lock airLock
+var lock AirLock
 
 func StartNewAirLock(t *testing.T) {
 	setEnvironment()

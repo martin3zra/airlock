@@ -10,7 +10,7 @@ import (
 	"github.com/martin3zra/respond"
 )
 
-func (a *airLock) HandleLogin() http.HandlerFunc {
+func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var params = &credentials{}
 		if !a.computedParams(w, r, params) {
@@ -32,7 +32,7 @@ func (a *airLock) HandleLogin() http.HandlerFunc {
 	}
 }
 
-func (a *airLock) HandleRefreshToken() http.HandlerFunc {
+func (a *AirLock) HandleRefreshToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := &refreshToken{}
 		if !a.computedParams(w, r, params) {
@@ -53,7 +53,7 @@ func (a *airLock) HandleRefreshToken() http.HandlerFunc {
 	}
 }
 
-func (a *airLock) HandleLogout() http.HandlerFunc {
+func (a *AirLock) HandleLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		err := a.auth.Logout(r)
@@ -70,7 +70,7 @@ func (a *airLock) HandleLogout() http.HandlerFunc {
 	}
 }
 
-func (a *airLock) computedParams(w http.ResponseWriter, r *http.Request, params BodyContract) bool {
+func (a *AirLock) computedParams(w http.ResponseWriter, r *http.Request, params BodyContract) bool {
 
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(params); err != nil {

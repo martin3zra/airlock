@@ -6,7 +6,7 @@ import (
 	"github.com/martin3zra/respond"
 )
 
-func (a *airLock) AuthenticateMiddleware(h http.HandlerFunc) http.HandlerFunc {
+func (a *AirLock) AuthenticateMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, err := a.auth.VerifyToken(r)
 		if err != nil {
