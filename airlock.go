@@ -11,8 +11,8 @@ type AirLock struct {
 	auth  *auth
 }
 
-func NewAirLock(config config, route *router.Routing, db *sql.DB) AirLock {
-	return AirLock{
+func NewAirLock(config config, route *router.Routing, db *sql.DB) *AirLock {
+	return &AirLock{
 		route: route,
 		auth:  newAuth(config, db),
 	}
