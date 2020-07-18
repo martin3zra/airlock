@@ -10,7 +10,7 @@ import (
 	"github.com/martin3zra/respond"
 )
 
-func (a *AirLock) HandleLogin() http.HandlerFunc {
+func (a *AirLock) handleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var params = &credentials{}
 		if !a.computedParams(w, r, params) {
@@ -32,7 +32,7 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 	}
 }
 
-func (a *AirLock) HandleRefreshToken() http.HandlerFunc {
+func (a *AirLock) handleRefreshToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := &refreshToken{}
 		if !a.computedParams(w, r, params) {
@@ -53,7 +53,7 @@ func (a *AirLock) HandleRefreshToken() http.HandlerFunc {
 	}
 }
 
-func (a *AirLock) HandleLogout() http.HandlerFunc {
+func (a *AirLock) handleLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		err := a.auth.Logout(r)
