@@ -64,7 +64,7 @@ func TestAirLock_HandleLogin(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			req := buildRequest(t, "/auth/token", test.credentials)
-			rr := post(req, lock.handleLogin())
+			rr := post(req, lock.HandleLogin())
 
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
@@ -94,7 +94,7 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 	StartNewAirLock(t)
 
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
-	rr := post(req, lock.handleLogin())
+	rr := post(req, lock.HandleLogin())
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -157,7 +157,7 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 func TestAirLock_HandleLogout(t *testing.T) {
 	StartNewAirLock(t)
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
-	rr := post(req, lock.handleLogin())
+	rr := post(req, lock.HandleLogin())
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)

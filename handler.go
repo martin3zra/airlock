@@ -10,7 +10,7 @@ import (
 	"github.com/martin3zra/respond"
 )
 
-func (a *AirLock) handleLogin() http.HandlerFunc {
+func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var params = &credentials{}
 		if !a.computedParams(w, r, params) {
