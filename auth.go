@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -99,17 +98,10 @@ func (a *auth) RefreshToken(refreshToken string) (*response, error) {
 }
 
 func (a *auth) VerifyToken(r *http.Request) (context.Context, error) {
-	var token string
-	// Get token from the Authorization header
-	// format: Authorization: Bearer
-	tokens, ok := r.Header["Authorization"]
-	if ok && len(tokens) >= 1 {
-		token = tokens[0]
-		token = strings.TrimPrefix(token, "Bearer ")
-	}
 
-	if len(token) == 0 {
-		return nil, new(AccessTokenMissing)
+	token, err := a.tokenFromRequest(r)
+	if err != nil {
+		return nil, err
 	}
 
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
