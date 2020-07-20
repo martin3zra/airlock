@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/martin3zra/respond"
 )
@@ -25,6 +26,19 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 			}
 
 			respond.Error(w, err)
+			return
+		}
+
+		if a.auth.config.storeInCookie {
+
+			http.SetCookie(w, &http.Cookie{
+				Name:     "token",
+				Value:    token.Token,
+				Expires:  time.Unix(token.ExpireAt, 0),
+				HttpOnly: true,
+			})
+
+			respond.NoContent(w)
 			return
 		}
 
