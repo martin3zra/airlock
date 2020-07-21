@@ -36,6 +36,7 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 				Value:    token.Token,
 				Expires:  time.Unix(token.ExpireAt, 0),
 				HttpOnly: true,
+				SameSite: http.SameSiteDefaultMode,
 			})
 
 			respond.NoContent(w)
