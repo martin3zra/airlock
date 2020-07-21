@@ -34,9 +34,10 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 			http.SetCookie(w, &http.Cookie{
 				Name:     "token",
 				Value:    token.Token,
-				Expires:  time.Unix(token.ExpireAt, 0),
+				Expires:  time.Now().Add(time.Minute * time.Duration(a.auth.config.tokenExpireIn)),
 				HttpOnly: true,
 				SameSite: http.SameSiteLaxMode,
+				Path:     "/",
 			})
 
 			respond.NoContent(w)
