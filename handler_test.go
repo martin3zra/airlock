@@ -69,8 +69,8 @@ func TestAirLock_HandleLogin(t *testing.T) {
 		},
 		{
 			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
-			statusCode:  http.StatusBadRequest,
-			name:        "it return 400 when valid credentials are provided and don't wants json",
+			statusCode:  http.StatusUnauthorized,
+			name:        "it return 401 when valid credentials are provided and don't wants json",
 		},
 	}
 

@@ -11,20 +11,20 @@ import (
 	"github.com/martin3zra/respond"
 )
 
-func (a *AirLock) doNotWanstJson(r *http.Request) bool {
+func (a *AirLock) wanstJson(r *http.Request) bool {
 	accept := r.Header.Get("accept")
 
 	//If the accept header is empty, we don't wants json
 	if len(accept) == 0 {
-		return true
+		return false
 	}
 
-	//If the accept header value is different from application/json
-	//we don't wants json
-	return (accept != "application/json")
+	//If the accept header value is equal to application/json
+	//we wants json
+	return (accept == "application/json")
 }
 
-func (a *AirLock) computeFormsRequest(r *http.Request) *credentials {
+func (a *AirLock) computeFormsRequest(w http.ResponseWriter, r *http.Request) *credentials {
 	r.ParseForm()
 	data := &credentials{}
 	data.Username = r.FormValue("username")
@@ -32,25 +32,29 @@ func (a *AirLock) computeFormsRequest(r *http.Request) *credentials {
 	return data
 }
 
+func (a *AirLock) parseRequest(w http.ResponseWriter, r *http.Request) *credentials {
+
+	if a.wanstJson(r) {
+		var params = &credentials{}
+		err := a.parseJsonRequest(r, params)
+		if err == nil {
+			return params
+		}
+
+		respond.BadRequest(w, err)
+		return nil
+	}
+
+	return a.computeFormsRequest(w, r)
+}
+
 func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		//TODO: If the request doesn't wants json as response
-		//we need to parse the request values as form
-		//and return Found http status code
-		//and set the value on the cookie
-		var params *credentials
-		if a.doNotWanstJson(r) {
-
-			params = a.computeFormsRequest(r)
-			if params == nil {
-				respond.BadRequest(w, new(AcceptableContent))
-				return
-			}
-		} else {
-			if !a.computedParams(w, r, params) {
-				return
-			}
+		// Check the parsing method and retest specialy the one that doesn't want json on handleLogin
+		params := a.parseRequest(w, r)
+		if params == nil {
+			return
 		}
 
 		token, err := a.auth.Authenticate(params.Username, params.Password)
@@ -64,7 +68,7 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 			return
 		}
 
-		if a.auth.config.storeInCookie {
+		if a.auth.config.storeInCookie || !a.wanstJson(r) {
 
 			http.SetCookie(w, &http.Cookie{
 				Name:     "token",
@@ -74,6 +78,12 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 				SameSite: http.SameSiteLaxMode,
 				Path:     "/",
 			})
+
+			if !a.wanstJson(r) {
+
+				http.Redirect(w, r, "", http.StatusFound)
+				return
+			}
 
 			respond.NoContent(w)
 			return
@@ -86,7 +96,9 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 func (a *AirLock) handleRefreshToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := &refreshToken{}
-		if !a.computedParams(w, r, params) {
+		err := a.parseJsonRequest(r, params)
+		if err != nil {
+			respond.BadRequest(w, err)
 			return
 		}
 
@@ -121,20 +133,18 @@ func (a *AirLock) handleLogout() http.HandlerFunc {
 	}
 }
 
-func (a *AirLock) computedParams(w http.ResponseWriter, r *http.Request, params BodyContract) bool {
+func (a *AirLock) parseJsonRequest(r *http.Request, params BodyContract) error {
 
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(params); err != nil {
-		respond.BadRequest(w, err)
-		return false
+		return err
 	}
 
 	if validErrs := params.Validate(); len(validErrs) > 0 {
-		respond.BadRequest(w, errors.New(toJSON(validErrs)))
-		return false
+		return errors.New(toJSON(validErrs))
 	}
 
-	return true
+	return nil
 }
 
 func toJSON(m interface{}) string {
