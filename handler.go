@@ -11,8 +11,27 @@ import (
 	"github.com/martin3zra/respond"
 )
 
+func (a *AirLock) doNotWanstJson(r *http.Request) bool {
+	accept := r.Header.Get("accept")
+
+	//If the accept header is empty, we don't wants json
+	if len(accept) == 0 {
+		return true
+	}
+
+	//If the accept header value is different from application/json
+	//we don't wants json
+	return (accept != "application/json")
+}
+
 func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		if a.doNotWanstJson(r) {
+			respond.BadRequest(w, new(AcceptableContent))
+			return
+		}
+
 		var params = &credentials{}
 		if !a.computedParams(w, r, params) {
 			return

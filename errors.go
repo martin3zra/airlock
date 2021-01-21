@@ -26,6 +26,18 @@ func (InvalidCredentials) Error() string {
 	return "InvalidCredentials"
 }
 
+type AcceptableContent struct {
+	respond.ErrorDescriptor
+}
+
+func (n *AcceptableContent) Code() int {
+	return 40002
+}
+
+func (n *AcceptableContent) Error() string {
+	return "AcceptableContent"
+}
+
 type RefreshTokenInvalid struct {
 	respond.ErrorDescriptor
 }

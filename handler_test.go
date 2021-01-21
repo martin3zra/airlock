@@ -24,6 +24,8 @@ const encryptionKey = "some-encryption-keys-goes-here"
 var db *sql.DB
 var lock *AirLock
 
+var wantsJson = "application/json"
+
 func StartNewAirLock(t *testing.T, storeTokenInCookie bool) {
 	setEnvironment()
 	db = connectDB()
@@ -43,27 +45,41 @@ func TestAirLock_HandleLogin(t *testing.T) {
 		credentials string
 		statusCode  int
 		name        string
+		acceptable  *string
 	}{
 		{
 			credentials: `{"username":"jane.doe@example.com", "password":"secret"}`,
 			statusCode:  http.StatusOK,
 			name:        "it returns Ok when valid credentials are provided",
+			acceptable:  &wantsJson,
 		},
 		{
 			credentials: `{"username": "not-found@example.com", "password": "secret"}`,
 			statusCode:  http.StatusUnauthorized,
 			name:        "it returns 401 unauthorized when invalid credentials are provided",
+			acceptable:  &wantsJson,
 		},
 		{
 			credentials: `{"username": "", "password": ""}`,
 			statusCode:  http.StatusBadRequest,
 			name:        "it returns 400 bad request when empty credentials are provided",
+			acceptable:  &wantsJson,
+		},
+		{
+			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
+			statusCode:  http.StatusBadRequest,
+			name:        "it return 400 when valid credentials are provided and don't wants json",
 		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			req := buildRequest(t, "/auth/token", test.credentials)
+
+			if test.acceptable != nil {
+				req.Header.Set("accept", *test.acceptable)
+			}
+
 			rr := post(req, lock.HandleLogin())
 
 			//assert the token was generated.
@@ -97,17 +113,24 @@ func TestAirLock_HandleLoginStoringInCookie(t *testing.T) {
 		credentials string
 		statusCode  int
 		name        string
+		acceptable  *string
 	}{
 		{
 			credentials: `{"username":"jane.doe@example.com", "password":"secret"}`,
 			statusCode:  http.StatusNoContent,
 			name:        "it returns NoContent and cookie when valid credentials are provided",
+			acceptable:  &wantsJson,
 		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			req := buildRequest(t, "/auth/token", test.credentials)
+
+			if test.acceptable != nil {
+				req.Header.Set("accept", *test.acceptable)
+			}
+
 			rr := post(req, lock.HandleLogin())
 
 			//assert the token was generated.
@@ -295,7 +318,7 @@ func TransformRecorder(t *testing.T, rr *httptest.ResponseRecorder) map[string]i
 }
 
 func setEnvironment() {
-	os.Setenv("DB_USER", "root")
+	os.Setenv("DB_USER", "martin3zra")
 	os.Setenv("DB_PASSWORD", "secret")
 	os.Setenv("DB_NAME", "airlock")
 	os.Setenv("DB_HOST", "127.0.0.1")
