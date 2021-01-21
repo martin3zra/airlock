@@ -5,7 +5,7 @@ go get github.com/martin3zra/airlock
 ```
 ## SQL DDL
 
-Run this sql ddl 
+Run this sql ddl
 ```sql
 CREATE TABLE `oauth_access_tokens` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -40,9 +40,9 @@ CREATE TABLE `oauth_refresh_tokens` (
 ## Configuration
 
 The expire time is the number of minutes that the access token should be considered valid. This security feature keeps tokens short-lived so they have less time to be guessed. You may change this as needed.
-     
+
 The encryption keys AirLock needs in order to generate access token. The generated keys are not typically kept in source control:
-     
+
 ```go
 package main
 import (
@@ -55,9 +55,11 @@ import (
 func main() {
     expireIn := int64(124000)
     encryptionKey := "---PRIVATE KEY ---"
-    
+    // optional redirect path
+    var redirectTo *string
+
     // Create a new configuration instance
-    config := airlock.NewConfig(expireIn, encryptionKey)
+    config := airlock.NewConfig(expireIn, encryptionKey, redirectTo)
     route := router.NewRoute(mux.NewRouter())
     var db *sql.DB
 
