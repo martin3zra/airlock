@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// BodyContract interface that ensure his implementation have
+// a validation methods, use to validate the request body
 type BodyContract interface {
 	Validate() url.Values
 }
@@ -91,6 +93,7 @@ func newRefreshTokenModel(refreshToken string, expireIn int64, identifier int) *
 	return model
 }
 
+// Authenticatable interface that represent an authentication object
 type Authenticatable interface {
 	GetAuthIdentifier() int
 	GetAuthIdentifierName() string
@@ -114,3 +117,9 @@ func (u user) GetAuthIdentifierName() string {
 func (u user) GetAuthPassword() string {
 	return u.Password
 }
+
+type keyType int
+
+const (
+	userID keyType = iota
+)

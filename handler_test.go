@@ -26,13 +26,13 @@ const encryptionKey = "some-encryption-keys-goes-here"
 var db *sql.DB
 var lock *AirLock
 
-var wantsJson = "application/json"
+var wantsJSON = "application/json"
 
 func StartNewAirLock(t *testing.T, storeTokenInCookie bool) {
 	setEnvironment()
 	db = connectDB()
 
-	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey)
+	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey, nil)
 	route := router.NewRoute(mux.NewRouter().StrictSlash(true))
 	lock = NewAirLock(cnf, route, db)
 
@@ -53,19 +53,19 @@ func TestAirLock_HandleLogin(t *testing.T) {
 			credentials: `{"username":"jane.doe@example.com", "password":"secret"}`,
 			statusCode:  http.StatusOK,
 			name:        "it returns Ok when valid credentials are provided",
-			acceptable:  &wantsJson,
+			acceptable:  &wantsJSON,
 		},
 		{
 			credentials: `{"username": "not-found@example.com", "password": "secret"}`,
 			statusCode:  http.StatusUnauthorized,
 			name:        "it returns 401 unauthorized when invalid credentials are provided",
-			acceptable:  &wantsJson,
+			acceptable:  &wantsJSON,
 		},
 		{
 			credentials: `{"username": "", "password": ""}`,
 			statusCode:  http.StatusBadRequest,
 			name:        "it returns 400 bad request when empty credentials are provided",
-			acceptable:  &wantsJson,
+			acceptable:  &wantsJSON,
 		},
 		{
 			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
@@ -179,7 +179,7 @@ func TestAirLock_HandleLoginStoringInCookie(t *testing.T) {
 			credentials: `{"username":"jane.doe@example.com", "password":"secret"}`,
 			statusCode:  http.StatusNoContent,
 			name:        "it returns NoContent and cookie when valid credentials are provided",
-			acceptable:  &wantsJson,
+			acceptable:  &wantsJSON,
 		},
 	}
 
@@ -222,6 +222,7 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 	StartNewAirLock(t, false)
 
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
+	req.Header.Set("accept", wantsJSON)
 	rr := post(req, lock.HandleLogin())
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
@@ -285,6 +286,8 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 func TestAirLock_HandleLogout(t *testing.T) {
 	StartNewAirLock(t, false)
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
+	req.Header.Set("accept", wantsJSON)
+
 	rr := post(req, lock.HandleLogin())
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
@@ -378,7 +381,7 @@ func TransformRecorder(t *testing.T, rr *httptest.ResponseRecorder) map[string]i
 }
 
 func setEnvironment() {
-	os.Setenv("DB_USER", "martin3zra")
+	os.Setenv("DB_USER", "root")
 	os.Setenv("DB_PASSWORD", "secret")
 	os.Setenv("DB_NAME", "airlock")
 	os.Setenv("DB_HOST", "127.0.0.1")

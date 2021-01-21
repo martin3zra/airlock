@@ -11,12 +11,12 @@ import (
 )
 
 type auth struct {
-	config   config
+	config   Config
 	repo     repository
 	hashable hash
 }
 
-func newAuth(config config, db *sql.DB) *auth {
+func newAuth(config Config, db *sql.DB) *auth {
 	return &auth{config: config, repo: newRepository(db), hashable: newHashable()}
 }
 
@@ -139,13 +139,13 @@ func (a *auth) VerifyToken(r *http.Request) (context.Context, error) {
 	}
 
 	ID := int(claims["identifier"].(interface{}).(float64))
-	ctx := context.WithValue(r.Context(), "userID", ID)
+	ctx := context.WithValue(r.Context(), userID, ID)
 	return ctx, nil
 }
 
 func (a *auth) Logout(r *http.Request) error {
-	userID := r.Context().Value("userID").(int)
-	return a.repo.Revoke(userID)
+	userIDValue := r.Context().Value(userID).(int)
+	return a.repo.Revoke(userIDValue)
 }
 
 func (a *auth) generateToken(authenticatable Authenticatable) (string, error) {

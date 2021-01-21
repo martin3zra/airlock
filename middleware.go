@@ -6,6 +6,9 @@ import (
 	"github.com/martin3zra/respond"
 )
 
+// AuthenticateMiddleware a request interceptor that ensure that the given
+// JWT token is still valid otherwise stop the request propagation and
+// respond with Unauthorized response
 func (a *AirLock) AuthenticateMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, err := a.auth.VerifyToken(r)

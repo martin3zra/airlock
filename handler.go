@@ -11,7 +11,7 @@ import (
 	"github.com/martin3zra/respond"
 )
 
-func (a *AirLock) wanstJson(r *http.Request) bool {
+func (a *AirLock) wantsJSON(r *http.Request) bool {
 	accept := r.Header.Get("accept")
 
 	//If the accept header is empty, we don't wants json
@@ -34,9 +34,9 @@ func (a *AirLock) computeFormsRequest(w http.ResponseWriter, r *http.Request) *c
 
 func (a *AirLock) parseRequest(w http.ResponseWriter, r *http.Request) *credentials {
 
-	if a.wanstJson(r) {
+	if a.wantsJSON(r) {
 		var params = &credentials{}
-		err := a.parseJsonRequest(r, params)
+		err := a.parseJSONRequest(r, params)
 		if err == nil {
 			return params
 		}
@@ -48,10 +48,13 @@ func (a *AirLock) parseRequest(w http.ResponseWriter, r *http.Request) *credenti
 	return a.computeFormsRequest(w, r)
 }
 
+// HandleLogin handle the user request to issue a new JWT token, it accept
+// an username and password as request body and Header key as optional
+// name `accept` to adknowledge how the user wants to store the
+// JWT token as response
 func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// Check the parsing method and retest specialy the one that doesn't want json on handleLogin
 		params := a.parseRequest(w, r)
 		if params == nil {
 			return
@@ -68,7 +71,7 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 			return
 		}
 
-		if a.auth.config.storeInCookie || !a.wanstJson(r) {
+		if a.auth.config.storeInCookie || !a.wantsJSON(r) {
 
 			http.SetCookie(w, &http.Cookie{
 				Name:     "token",
@@ -79,9 +82,9 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 				Path:     "/",
 			})
 
-			if !a.wanstJson(r) {
+			if !a.wantsJSON(r) {
 
-				http.Redirect(w, r, "", http.StatusFound)
+				http.Redirect(w, r, a.auth.config.redirectTo, http.StatusFound)
 				return
 			}
 
@@ -96,7 +99,7 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 func (a *AirLock) handleRefreshToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := &refreshToken{}
-		err := a.parseJsonRequest(r, params)
+		err := a.parseJSONRequest(r, params)
 		if err != nil {
 			respond.BadRequest(w, err)
 			return
@@ -133,7 +136,7 @@ func (a *AirLock) handleLogout() http.HandlerFunc {
 	}
 }
 
-func (a *AirLock) parseJsonRequest(r *http.Request, params BodyContract) error {
+func (a *AirLock) parseJSONRequest(r *http.Request, params BodyContract) error {
 
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(params); err != nil {
