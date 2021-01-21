@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,11 +26,13 @@ const encryptionKey = "some-encryption-keys-goes-here"
 var db *sql.DB
 var lock *AirLock
 
+var wantsJSON = "application/json"
+
 func StartNewAirLock(t *testing.T, storeTokenInCookie bool) {
 	setEnvironment()
 	db = connectDB()
 
-	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey)
+	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey, nil)
 	route := router.NewRoute(mux.NewRouter().StrictSlash(true))
 	lock = NewAirLock(cnf, route, db)
 
@@ -43,29 +47,101 @@ func TestAirLock_HandleLogin(t *testing.T) {
 		credentials string
 		statusCode  int
 		name        string
+		acceptable  *string
 	}{
 		{
 			credentials: `{"username":"jane.doe@example.com", "password":"secret"}`,
 			statusCode:  http.StatusOK,
 			name:        "it returns Ok when valid credentials are provided",
+			acceptable:  &wantsJSON,
 		},
 		{
 			credentials: `{"username": "not-found@example.com", "password": "secret"}`,
 			statusCode:  http.StatusUnauthorized,
 			name:        "it returns 401 unauthorized when invalid credentials are provided",
+			acceptable:  &wantsJSON,
 		},
 		{
 			credentials: `{"username": "", "password": ""}`,
 			statusCode:  http.StatusBadRequest,
 			name:        "it returns 400 bad request when empty credentials are provided",
+			acceptable:  &wantsJSON,
+		},
+		{
+			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
+			statusCode:  http.StatusUnauthorized,
+			name:        "it return 401 when valid credentials are provided and don't wants json",
 		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			req := buildRequest(t, "/auth/token", test.credentials)
+
+			if test.acceptable != nil {
+				req.Header.Set("accept", *test.acceptable)
+			}
+
 			rr := post(req, lock.HandleLogin())
 
+			//assert the token was generated.
+			if status := rr.Code; status != test.statusCode {
+				t.Errorf("handler returned wrong status code: got %v want %v",
+					status, test.statusCode)
+				t.FailNow()
+			}
+
+			if status := rr.Code; status == http.StatusOK {
+				response := TransformRecorder(t, rr)
+				token, ok := response["token"]
+				if !ok {
+					t.Errorf("handler does not returned token key")
+					t.FailNow()
+				}
+
+				if len(token.(string)) == 0 {
+					t.Errorf("handler returned token key empty")
+					t.FailNow()
+				}
+			}
+		})
+	}
+}
+
+func TestAirLock_HandleLoginAndRedirect(t *testing.T) {
+	StartNewAirLock(t, false)
+
+	cases := []struct {
+		credentials string
+		statusCode  int
+		name        string
+		acceptable  *string
+	}{
+		{
+			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
+			statusCode:  http.StatusFound,
+			name:        "it return 302 when valid credentials are provided and don't wants json",
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+
+			data := url.Values{
+				"username": {"jane.doe@example.com"},
+				"password": {"secret"},
+			}
+
+			req, err := http.NewRequest(http.MethodPost, "/auth/token", strings.NewReader(data.Encode()))
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+			if err != nil {
+				t.Errorf(err.Error())
+				t.Errorf("here ")
+				t.FailNow()
+			}
+
+			rr := post(req, lock.HandleLogin())
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -97,17 +173,24 @@ func TestAirLock_HandleLoginStoringInCookie(t *testing.T) {
 		credentials string
 		statusCode  int
 		name        string
+		acceptable  *string
 	}{
 		{
 			credentials: `{"username":"jane.doe@example.com", "password":"secret"}`,
 			statusCode:  http.StatusNoContent,
 			name:        "it returns NoContent and cookie when valid credentials are provided",
+			acceptable:  &wantsJSON,
 		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			req := buildRequest(t, "/auth/token", test.credentials)
+
+			if test.acceptable != nil {
+				req.Header.Set("accept", *test.acceptable)
+			}
+
 			rr := post(req, lock.HandleLogin())
 
 			//assert the token was generated.
@@ -139,6 +222,7 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 	StartNewAirLock(t, false)
 
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
+	req.Header.Set("accept", wantsJSON)
 	rr := post(req, lock.HandleLogin())
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
@@ -202,6 +286,8 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 func TestAirLock_HandleLogout(t *testing.T) {
 	StartNewAirLock(t, false)
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
+	req.Header.Set("accept", wantsJSON)
+
 	rr := post(req, lock.HandleLogin())
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",

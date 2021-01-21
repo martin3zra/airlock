@@ -1,5 +1,8 @@
 package airlock
 
+// Routes a registry to all expose and available routes path
+// that the user can hit with a request to issue, refresh
+// and revoked a given token
 func (a *AirLock) Routes() {
 	a.route.Prefix("auth", func() {
 		a.route.Post("token", a.HandleLogin())
