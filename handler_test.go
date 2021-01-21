@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -82,6 +84,64 @@ func TestAirLock_HandleLogin(t *testing.T) {
 
 			rr := post(req, lock.HandleLogin())
 
+			//assert the token was generated.
+			if status := rr.Code; status != test.statusCode {
+				t.Errorf("handler returned wrong status code: got %v want %v",
+					status, test.statusCode)
+				t.FailNow()
+			}
+
+			if status := rr.Code; status == http.StatusOK {
+				response := TransformRecorder(t, rr)
+				token, ok := response["token"]
+				if !ok {
+					t.Errorf("handler does not returned token key")
+					t.FailNow()
+				}
+
+				if len(token.(string)) == 0 {
+					t.Errorf("handler returned token key empty")
+					t.FailNow()
+				}
+			}
+		})
+	}
+}
+
+func TestAirLock_HandleLoginAndRedirect(t *testing.T) {
+	StartNewAirLock(t, false)
+
+	cases := []struct {
+		credentials string
+		statusCode  int
+		name        string
+		acceptable  *string
+	}{
+		{
+			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
+			statusCode:  http.StatusFound,
+			name:        "it return 302 when valid credentials are provided and don't wants json",
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+
+			data := url.Values{
+				"username": {"jane.doe@example.com"},
+				"password": {"secret"},
+			}
+
+			req, err := http.NewRequest(http.MethodPost, "/auth/token", strings.NewReader(data.Encode()))
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+			if err != nil {
+				t.Errorf(err.Error())
+				t.Errorf("here ")
+				t.FailNow()
+			}
+
+			rr := post(req, lock.HandleLogin())
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
 				t.Errorf("handler returned wrong status code: got %v want %v",

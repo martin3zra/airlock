@@ -24,17 +24,33 @@ func (a *AirLock) doNotWanstJson(r *http.Request) bool {
 	return (accept != "application/json")
 }
 
+func (a *AirLock) computeFormsRequest(r *http.Request) *credentials {
+	r.ParseForm()
+	data := &credentials{}
+	data.Username = r.FormValue("username")
+	data.Password = r.FormValue("password")
+	return data
+}
+
 func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		//TODO: If the request doesn't wants json as response
+		//we need to parse the request values as form
+		//and return Found http status code
+		//and set the value on the cookie
+		var params *credentials
 		if a.doNotWanstJson(r) {
-			respond.BadRequest(w, new(AcceptableContent))
-			return
-		}
 
-		var params = &credentials{}
-		if !a.computedParams(w, r, params) {
-			return
+			params = a.computeFormsRequest(r)
+			if params == nil {
+				respond.BadRequest(w, new(AcceptableContent))
+				return
+			}
+		} else {
+			if !a.computedParams(w, r, params) {
+				return
+			}
 		}
 
 		token, err := a.auth.Authenticate(params.Username, params.Password)
