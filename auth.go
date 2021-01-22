@@ -139,12 +139,12 @@ func (a *auth) VerifyToken(r *http.Request) (context.Context, error) {
 	}
 
 	ID := int(claims["identifier"].(interface{}).(float64))
-	ctx := context.WithValue(r.Context(), userID, ID)
+	ctx := context.WithValue(r.Context(), ContextUserID, ID)
 	return ctx, nil
 }
 
 func (a *auth) Logout(r *http.Request) error {
-	userIDValue := r.Context().Value(userID).(int)
+	userIDValue := r.Context().Value(ContextUserID).(int)
 	return a.repo.Revoke(userIDValue)
 }
 

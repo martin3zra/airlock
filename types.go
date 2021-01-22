@@ -121,5 +121,6 @@ func (u user) GetAuthPassword() string {
 type keyType int
 
 const (
-	userID keyType = iota
+	ContextUserID keyType = iota
+	ContextTokenID
 )

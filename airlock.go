@@ -12,8 +12,9 @@ import (
 // or redirect to the default or given path after a
 // successfull authentication.
 type AirLock struct {
-	route *router.Routing
-	auth  *auth
+	route     *router.Routing
+	auth      *auth
+	wantsJSON bool
 }
 
 // NewAirLock create a new instance of AirLock type
@@ -21,7 +22,8 @@ type AirLock struct {
 // as params for internal task.
 func NewAirLock(config Config, route *router.Routing, db *sql.DB) *AirLock {
 	return &AirLock{
-		route: route,
-		auth:  newAuth(config, db),
+		route:     route,
+		auth:      newAuth(config, db),
+		wantsJSON: false,
 	}
 }

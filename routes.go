@@ -5,8 +5,10 @@ package airlock
 // and revoked a given token
 func (a *AirLock) Routes() {
 	a.route.Prefix("auth", func() {
-		a.route.Post("token", a.HandleLogin())
-		a.route.Post("refresh", a.handleRefreshToken())
-		a.route.Post("logout", a.AuthenticateMiddleware(a.handleLogout()))
+		a.route.Middleware(a.acceptMiddleware).Group(func() {
+			a.route.Post("token", a.HandleLogin())
+			a.route.Post("refresh", a.handleRefreshToken())
+			a.route.Post("logout", a.AuthenticateMiddleware(a.handleLogout()))
+		})
 	})
 }

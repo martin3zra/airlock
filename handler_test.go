@@ -32,7 +32,7 @@ func StartNewAirLock(t *testing.T, storeTokenInCookie bool) {
 	setEnvironment()
 	db = connectDB()
 
-	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey, nil)
+	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey, nil, nil)
 	route := router.NewRoute(mux.NewRouter().StrictSlash(true))
 	lock = NewAirLock(cnf, route, db)
 
@@ -69,7 +69,7 @@ func TestAirLock_HandleLogin(t *testing.T) {
 		},
 		{
 			credentials: `{"username": "jane.doe@example.com", "password": "secret"}`,
-			statusCode:  http.StatusUnauthorized,
+			statusCode:  http.StatusSeeOther,
 			name:        "it return 401 when valid credentials are provided and don't wants json",
 		},
 	}
@@ -82,7 +82,7 @@ func TestAirLock_HandleLogin(t *testing.T) {
 				req.Header.Set("accept", *test.acceptable)
 			}
 
-			rr := post(req, lock.HandleLogin())
+			rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
 
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
@@ -191,7 +191,7 @@ func TestAirLock_HandleLoginStoringInCookie(t *testing.T) {
 				req.Header.Set("accept", *test.acceptable)
 			}
 
-			rr := post(req, lock.HandleLogin())
+			rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
 
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
@@ -223,7 +223,7 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
 	req.Header.Set("accept", wantsJSON)
-	rr := post(req, lock.HandleLogin())
+	rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -288,7 +288,7 @@ func TestAirLock_HandleLogout(t *testing.T) {
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
 	req.Header.Set("accept", wantsJSON)
 
-	rr := post(req, lock.HandleLogin())
+	rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
