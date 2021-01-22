@@ -57,9 +57,10 @@ func main() {
     encryptionKey := "---PRIVATE KEY ---"
     // optional redirect path
     var redirectTo *string
+    var redirectBackTo *string
 
     // Create a new configuration instance
-    config := airlock.NewConfig(expireIn, encryptionKey, redirectTo)
+    config := airlock.NewConfig(expireIn, encryptionKey, redirectTo, redirectBackTo)
     route := router.NewRoute(mux.NewRouter())
     var db *sql.DB
 
