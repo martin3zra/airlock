@@ -16,6 +16,7 @@ import (
 // JWT token as response
 func (a *AirLock) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := a.session.Get(r, "flash-session")
 
 		params := a.parseRequest(w, r)
 		if params == nil {
@@ -25,7 +26,8 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 		token, err := a.auth.Authenticate(params.Username, params.Password)
 		if err != nil {
 			if _, ok := err.(respond.ErrorFormatter); ok {
-				// Flash message here
+				session.AddFlash(err.Error(), "error")
+				session.Save(r, w)
 				if !a.wantsJSON {
 					a.Back(w, r, http.StatusSeeOther)
 					return
@@ -36,6 +38,8 @@ func (a *AirLock) HandleLogin() http.HandlerFunc {
 			}
 
 			if !a.wantsJSON {
+				session.AddFlash(err.Error(), "error")
+				session.Save(r, w)
 				a.Back(w, r, http.StatusSeeOther)
 				return
 			}

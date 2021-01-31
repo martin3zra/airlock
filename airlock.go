@@ -3,6 +3,7 @@ package airlock
 import (
 	"database/sql"
 
+	"github.com/gorilla/sessions"
 	"github.com/martin3zra/router"
 )
 
@@ -15,6 +16,7 @@ type AirLock struct {
 	route     *router.Routing
 	auth      *auth
 	wantsJSON bool
+	session   *sessions.CookieStore
 }
 
 // NewAirLock create a new instance of AirLock type
@@ -26,4 +28,8 @@ func NewAirLock(config Config, route *router.Routing, db *sql.DB) *AirLock {
 		auth:      newAuth(config, db),
 		wantsJSON: false,
 	}
+}
+
+func (a *AirLock) RegisterSessionStore(session *sessions.CookieStore) {
+	a.session = session
 }
