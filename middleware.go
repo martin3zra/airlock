@@ -39,7 +39,7 @@ func (a *AirLock) AuthenticateMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (a *AirLock) acceptMiddleware(h http.HandlerFunc) http.HandlerFunc {
+func (a *AirLock) AcceptMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		accept := r.Header.Get("accept")
 

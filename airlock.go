@@ -10,7 +10,7 @@ import (
 // to issue JWT tokens, refresh token and expire token and
 // also can response with a json format, save on cookies
 // or redirect to the default or given path after a
-// successfull authentication.
+// successful authentication.
 type AirLock struct {
 	route     *router.Routing
 	auth      *auth

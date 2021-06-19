@@ -82,7 +82,7 @@ func TestAirLock_HandleLogin(t *testing.T) {
 				req.Header.Set("accept", *test.acceptable)
 			}
 
-			rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
+			rr := post(req, lock.AcceptMiddleware(lock.HandleLogin()))
 
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
@@ -191,7 +191,7 @@ func TestAirLock_HandleLoginStoringInCookie(t *testing.T) {
 				req.Header.Set("accept", *test.acceptable)
 			}
 
-			rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
+			rr := post(req, lock.AcceptMiddleware(lock.HandleLogin()))
 
 			//assert the token was generated.
 			if status := rr.Code; status != test.statusCode {
@@ -223,7 +223,7 @@ func TestAirLock_HandleRefreshToken(t *testing.T) {
 
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
 	req.Header.Set("accept", wantsJSON)
-	rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
+	rr := post(req, lock.AcceptMiddleware(lock.HandleLogin()))
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
@@ -288,7 +288,7 @@ func TestAirLock_HandleLogout(t *testing.T) {
 	req := buildRequest(t, "/auth/token", `{"username":"jane.doe@example.com", "password":"secret"}`)
 	req.Header.Set("accept", wantsJSON)
 
-	rr := post(req, lock.acceptMiddleware(lock.HandleLogin()))
+	rr := post(req, lock.AcceptMiddleware(lock.HandleLogin()))
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
