@@ -116,10 +116,8 @@ func (a *AirLock) handleLogout() http.HandlerFunc {
 			respond.Error(w, err)
 		}
 
-		if !a.wantsJSON {
+		if a.auth.config.storeInCookie {
 			a.invalidateCookie(w, r)
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
 		}
 
 		respond.NoContent(w)
