@@ -8,5 +8,5 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/martin3zra/respond v0.0.1
 	github.com/martin3zra/router v0.0.1
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	golang.org/x/crypto v0.1.0
 )
