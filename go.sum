@@ -2,14 +2,10 @@ github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumC
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
-github.com/gorilla/mux v1.7.4 h1:VuZ8uybHlWmqV03+zRzdwKL4tUnIp1MAQtp1mIFE1bc=
-github.com/gorilla/mux v1.7.4/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
 github.com/martin3zra/respond v0.0.1 h1:Q4n9G8NIf7p+NYpeB5lV4Kau8RuA5GYpE4EhwbrTL/M=
 github.com/martin3zra/respond v0.0.1/go.mod h1:RVbsSuW4oa2Qe2hVk7bRnZs4v2uvF75+twhWnnORQGA=
-github.com/martin3zra/router v0.0.0-20200601210218-7592068cc150 h1:5d3Ba0ldVeE6ygWjgdyqMcryqicRMZHv2RHqD9gYk5o=
-github.com/martin3zra/router v0.0.0-20200601210218-7592068cc150/go.mod h1:MSnicz8F4V6f0JsP/oJaoE8hD7RRzPQcGGaM2O6pK9E=
-github.com/martin3zra/router v0.0.1 h1:nBG4HwpmIft533bsj1+nWao59GQ7vK1qiuah/QnxuKo=
-github.com/martin3zra/router v0.0.1/go.mod h1:MSnicz8F4V6f0JsP/oJaoE8hD7RRzPQcGGaM2O6pK9E=
+github.com/mattn/go-sqlite3 v1.14.24 h1:tpSp2G2KyMnnQu99ngJ47EIkWVmliIizyZBfPrBWDRM=
+github.com/mattn/go-sqlite3 v1.14.24/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 h1:DZhuSZLsGlFL4CmhA8BcRA0mnthyA/nZ00AqCUo7vHg=
 golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=

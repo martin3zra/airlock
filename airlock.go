@@ -2,8 +2,7 @@ package airlock
 
 import (
 	"database/sql"
-
-	"github.com/martin3zra/router"
+	"net/http"
 )
 
 // AirLock type that expose the abilities to accept request and
@@ -12,7 +11,7 @@ import (
 // or redirect to the default or given path after a
 // successful authentication.
 type AirLock struct {
-	route     *router.Routing
+	route     *http.ServeMux
 	auth      *auth
 	wantsJSON bool
 }
@@ -20,7 +19,7 @@ type AirLock struct {
 // NewAirLock create a new instance of AirLock type
 // accept configuration, router and db object
 // as params for internal task.
-func NewAirLock(config Config, route *router.Routing, db *sql.DB) *AirLock {
+func NewAirLock(config Config, route *http.ServeMux, db *sql.DB) *AirLock {
 	return &AirLock{
 		route:     route,
 		auth:      newAuth(config, db),
