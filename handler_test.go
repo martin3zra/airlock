@@ -373,10 +373,4 @@ func TransformRecorder(t *testing.T, rr *httptest.ResponseRecorder) map[string]i
 
 func setEnvironment() {
 	os.Setenv("DB_DRIVER", "sqlite3")
-
-	_, err := os.OpenFile("airlock.db", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
