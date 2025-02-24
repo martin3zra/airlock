@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -12,13 +11,10 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/martin3zra/router"
 
 	// This comment is for go lint
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )
 
 const encryptionKey = "some-encryption-keys-goes-here"
@@ -33,7 +29,7 @@ func StartNewAirLock(t *testing.T, storeTokenInCookie bool) {
 	db = connectDB()
 
 	cnf := NewConfig(storeTokenInCookie, int64(17280000000), encryptionKey, nil, nil)
-	route := router.NewRoute(mux.NewRouter().StrictSlash(true))
+	route := http.NewServeMux()
 	lock = NewAirLock(cnf, route, db)
 
 	beforeEachTest(t, db)
@@ -355,14 +351,9 @@ func logFatal(err error) {
 }
 
 func connectDB() *sql.DB {
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
 
-	db, err := sql.Open(os.Getenv("DB_DRIVER"), connectionString)
+	db, err := sql.Open(os.Getenv("DB_DRIVER"), "./arilock.db")
 	logFatal(err)
-
-	db.SetMaxIdleConns(5)
-	db.SetMaxOpenConns(5)
-	db.SetConnMaxLifetime(time.Millisecond * 300)
 
 	err = db.Ping()
 	logFatal(err)
@@ -372,7 +363,7 @@ func connectDB() *sql.DB {
 
 func TransformRecorder(t *testing.T, rr *httptest.ResponseRecorder) map[string]interface{} {
 	responseMap := make(map[string]interface{})
-	err := json.Unmarshal([]byte(rr.Body.String()), &responseMap)
+	err := json.Unmarshal(rr.Body.Bytes(), &responseMap)
 	if err != nil {
 		t.Errorf("Cannot convert to json: %v", err)
 	}
@@ -381,11 +372,11 @@ func TransformRecorder(t *testing.T, rr *httptest.ResponseRecorder) map[string]i
 }
 
 func setEnvironment() {
-	os.Setenv("DB_USER", "root")
-	os.Setenv("DB_PASSWORD", "secret")
-	os.Setenv("DB_NAME", "airlock")
-	os.Setenv("DB_HOST", "127.0.0.1")
-	os.Setenv("DB_PORT", "3306")
-	os.Setenv("DB_DRIVER", "mysql")
+	os.Setenv("DB_DRIVER", "sqlite3")
+
+	_, err := os.OpenFile("airlock.db", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
